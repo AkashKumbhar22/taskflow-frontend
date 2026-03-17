@@ -23,14 +23,14 @@ function App() {
   });
 
   const calculateStats = useCallback((taskList) => {
-    const stats = {
+    const statsData = {
       total: taskList.length,
       queued: taskList.filter(t => t.status === 'QUEUED').length,
       inProgress: taskList.filter(t => t.status === 'IN_PROGRESS').length,
       completed: taskList.filter(t => t.status === 'COMPLETED').length,
       failed: taskList.filter(t => t.status === 'FAILED').length,
     };
-    setStats(stats);
+    setStats(statsData);
   }, []);
 
   const checkBackendHealth = useCallback(async () => {
@@ -207,6 +207,15 @@ function App() {
           <p className="text-2xl text-white opacity-90 mb-6">
             Manage Your Tasks Efficiently
           </p>
+
+          {/* ✅ STATS SECTION (FIXED ERROR HERE) */}
+          <div className="flex justify-center gap-4 mb-6 flex-wrap">
+            <span className="bg-white px-3 py-1 rounded">Total: {stats.total}</span>
+            <span className="bg-yellow-200 px-3 py-1 rounded">Queued: {stats.queued}</span>
+            <span className="bg-blue-200 px-3 py-1 rounded">In Progress: {stats.inProgress}</span>
+            <span className="bg-green-200 px-3 py-1 rounded">Completed: {stats.completed}</span>
+            <span className="bg-red-200 px-3 py-1 rounded">Failed: {stats.failed}</span>
+          </div>
 
           <div className="flex items-center justify-center gap-4">
             <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
