@@ -34,15 +34,23 @@ function App() {
     setStats(newStats);
   }, []);
 
-  const checkBackendHealth = useCallback(async () => {
-    try {
-      const response = await taskAPI.getHealth();
-      setBackendHealth(response.data.status);
-    } catch (err) {
-      console.error('Health check failed:', err);
-      setBackendHealth('DOWN');
+const checkBackendHealth = useCallback(async () => {
+  try {
+    const response = await taskAPI.getHealth();
+
+    console.log("Health Response:", response.data);
+
+    if (response?.data?.status === "UP") {
+      setBackendHealth("UP");
+    } else {
+      setBackendHealth("DOWN");
     }
-  }, []);
+
+  } catch (err) {
+    console.error('Health check failed:', err);
+    setBackendHealth('DOWN');
+  }
+}, []);
 
   const loadTasks = useCallback(async () => {
     try {
@@ -108,7 +116,7 @@ function App() {
     loadTasks();
     checkBackendHealth();
 
-    const healthInterval = setInterval(checkBackendHealth, 30000);
+    const healthInterval = setInterval(checkBackendHealth, 10000);
     return () => clearInterval(healthInterval);
   }, [loadTasks, checkBackendHealth]);
 
