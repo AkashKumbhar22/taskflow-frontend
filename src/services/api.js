@@ -1,6 +1,5 @@
 import axios from "axios";
 
-
 // Backend URL from environment variable
 const API_BASE_URL =
   process.env.REACT_APP_API_URL || "https://taskflow-t4tz.onrender.com/api";
@@ -8,18 +7,17 @@ const API_BASE_URL =
 const BACKEND_URL =
   process.env.REACT_APP_BACKEND_URL || "https://taskflow-t4tz.onrender.com";
 
-
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 60000,
+  timeout: 10000,
 });
 
-
-
+// ================================
+// REQUEST INTERCEPTOR
+// ================================
 api.interceptors.request.use(
   (config) => {
     console.log(
@@ -36,7 +34,6 @@ api.interceptors.request.use(
 // ================================
 // RESPONSE INTERCEPTOR
 // ================================
-
 api.interceptors.response.use(
   (response) => {
     console.log(`API Response ← ${response.status} ${response.config.url}`);
@@ -60,70 +57,60 @@ api.interceptors.response.use(
 // ================================
 // TASK API ENDPOINTS
 // ================================
-
 export const taskAPI = {
   // Get all tasks
-  getAllTasks: () => {
-    return api.get("/tasks");
-  },
+  getAllTasks: () => api.get("/tasks"),
 
   // Get task by ID
-  getTaskById: (id) => {
-    return api.get(`/tasks/${id}`);
-  },
+  getTaskById: (id) => api.get(`/tasks/${id}`),
 
   // Create task
-  createTask: (task) => {
-    return api.post("/tasks", task);
-  },
+  createTask: (task) => api.post("/tasks", task),
 
   // Update task
-  updateTask: (id, task) => {
-    return api.put(`/tasks/${id}`, task);
-  },
+  updateTask: (id, task) => api.put(`/tasks/${id}`, task),
 
   // Delete task
-  deleteTask: (id) => {
-    return api.delete(`/tasks/${id}`);
-  },
+  deleteTask: (id) => api.delete(`/tasks/${id}`),
 
   // Paginated tasks
-  getPaginatedTasks: (page = 0, size = 10, sortBy = "id", direction = "ASC") => {
-    return api.get("/tasks/paginated", {
+  getPaginatedTasks: (page = 0, size = 10, sortBy = "id", direction = "ASC") =>
+    api.get("/tasks/paginated", {
       params: { page, size, sortBy, direction },
-    });
-  },
+    }),
 
   // Filter by status
-  getTasksByStatus: (status) => {
-    return api.get(`/tasks/status/${status}`);
-  },
+  getTasksByStatus: (status) => api.get(`/tasks/status/${status}`),
 
   // Filter by priority
-  getTasksByPriority: (priority) => {
-    return api.get(`/tasks/priority/${priority}`);
-  },
+  getTasksByPriority: (priority) =>
+    api.get(`/tasks/priority/${priority}`),
 
   // Search tasks
-  searchTasks: (keyword) => {
-    return api.get("/tasks/search", {
+  searchTasks: (keyword) =>
+    api.get("/tasks/search", {
       params: { keyword },
-    });
-  },
+    }),
 
-  // Backend health
-  getHealth: () => {
-    return axios.get(`${BACKEND_URL}/actuator/health`);
-  },
+  // ================================
+  // ✅ FIXED HEALTH CHECK (IMPORTANT)
+  // ================================
+  getHealth: async () => {
+    try {
+      const response = await axios.get(
+        `${BACKEND_URL}/actuator/health`
+      );
 
-  // Cache stats
-  getCacheStats: () => {
-    return api.get("/cache/stats");
-  },
-
-  // Clear cache
-  clearCache: () => {
-    return api.delete("/cache/clear");
+      // ✅ Correct parsing
+      if (response.data.status === "UP") {
+        return { status: "UP" };
+      } else {
+        return { status: "DOWN" };
+      }
+    } catch (error) {
+      console.error("Health check failed:", error);
+      return { status: "DOWN" };
+    }
   },
 };
 
