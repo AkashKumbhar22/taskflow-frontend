@@ -14,6 +14,7 @@ function App() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [backendHealth, setBackendHealth] = useState(null);
 
+  // ✅ KEEP stats (NOW USED)
   const [stats, setStats] = useState({
     total: 0,
     queued: 0,
@@ -23,14 +24,14 @@ function App() {
   });
 
   const calculateStats = useCallback((taskList) => {
-    const stats = {
+    const newStats = {
       total: taskList.length,
       queued: taskList.filter(t => t.status === 'QUEUED').length,
       inProgress: taskList.filter(t => t.status === 'IN_PROGRESS').length,
       completed: taskList.filter(t => t.status === 'COMPLETED').length,
       failed: taskList.filter(t => t.status === 'FAILED').length,
     };
-    setStats(stats);
+    setStats(newStats);
   }, []);
 
   const checkBackendHealth = useCallback(async () => {
@@ -152,7 +153,7 @@ function App() {
 
     } catch (err) {
       console.error('Error updating task:', err);
-      setError('Failed to update task. Please try again.');
+      setError('Failed to update task.');
     } finally {
       setLoading(false);
     }
@@ -165,17 +166,17 @@ function App() {
         loadTasks();
       } catch (err) {
         console.error('Error deleting task:', err);
-        alert('Failed to delete task. Please try again.');
+        alert('Failed to delete task.');
       }
     }
   };
 
-  const handleFilterChange = (filterType, value) => {
-    if (filterType === 'status') {
+  const handleFilterChange = (type, value) => {
+    if (type === 'status') {
       setFilterStatus(value);
       setFilterPriority('');
       setSearchKeyword('');
-    } else if (filterType === 'priority') {
+    } else if (type === 'priority') {
       setFilterPriority(value);
       setFilterStatus('');
       setSearchKeyword('');
@@ -196,47 +197,38 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen py-8 px-4">
       <div className="max-w-7xl mx-auto">
 
-        <div className="text-center mb-12">
-          <h1 className="text-6xl font-bold text-white drop-shadow-lg">
-            TaskFlow
-          </h1>
+        {/* HEADER */}
+        <div className="text-center mb-10">
+          <h1 className="text-5xl font-bold text-white">TaskFlow</h1>
+          <p className="text-xl text-white">Manage Your Tasks Efficiently</p>
 
-          <p className="text-2xl text-white opacity-90 mb-6">
-            Manage Your Tasks Efficiently
-          </p>
+          {/* ✅ STATS DISPLAY (FIXED ERROR HERE) */}
+          <div className="flex justify-center gap-4 mt-6 flex-wrap">
+            <span>Total: {stats.total}</span>
+            <span>Queued: {stats.queued}</span>
+            <span>In Progress: {stats.inProgress}</span>
+            <span>Completed: {stats.completed}</span>
+            <span>Failed: {stats.failed}</span>
+          </div>
 
-          <div className="flex items-center justify-center gap-4">
-            <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
-              backendHealth === 'UP'
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
+          <div className="mt-4">
+            <span>
               Backend: {backendHealth || 'Checking...'}
             </span>
-
-            <button
-              onClick={checkBackendHealth}
-              className="bg-white text-black px-4 py-2 rounded"
-            >
+            <button onClick={checkBackendHealth} className="ml-4">
               Refresh
             </button>
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-100 text-red-700 p-4 mb-8 rounded">
-            {error}
-          </div>
-        )}
+        {error && <div>{error}</div>}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          <div className="lg:col-span-1">
-            <TaskForm onTaskCreated={handleCreateTask} />
-          </div>
+          <TaskForm onTaskCreated={handleCreateTask} />
 
           <div className="lg:col-span-2">
 
@@ -247,30 +239,23 @@ function App() {
             />
 
             {loading ? (
-              <div className="bg-white p-10 rounded text-center">
-                Loading tasks...
-              </div>
+              <div>Loading...</div>
             ) : tasks.length === 0 ? (
-              <div className="bg-white p-10 rounded text-center">
-                No tasks found
-              </div>
+              <div>No tasks found</div>
             ) : (
-              <div className="space-y-4">
-                {tasks.map(task => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    onUpdate={handleUpdateTask}
-                    onDelete={handleDeleteTask}
-                  />
-                ))}
-              </div>
+              tasks.map(task => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onUpdate={handleUpdateTask}
+                  onDelete={handleDeleteTask}
+                />
+              ))
             )}
 
           </div>
 
         </div>
-
       </div>
     </div>
   );
